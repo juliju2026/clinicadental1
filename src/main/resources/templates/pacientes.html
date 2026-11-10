@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pacientes</title>
+    <!-- Vinculación del CSS -->
+    <link th:href="@{/css/estilos.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>Listado de pacientes</h1>
+
+    <a th:href="@{/pacientes/nuevo}" class="btn">
+        + Nuevo paciente
+    </a>
+
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${pacientes}">
+                <td th:text="${p.id}"></td>
+                <td th:text="${p.nombre}"></td>
+                <td th:text="${p.apellidos}"></td>
+                <td th:text="${p.telefono}"></td>
+                <td th:text="${p.email}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

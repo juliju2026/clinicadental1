@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo paciente</title>
+    <!-- Vinculación del CSS -->
+    <link th:href="@{/css/estilos.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>Alta de paciente</h1>
+
+    <form th:action="@{/pacientes/guardar}" th:object="${paciente}" method="post">
+        <div class="form-grid">
+
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="nombre">Nombre:</label>
+                    <!-- Aquí irá el contador, le ponemos un id único para controlarlo -->
+                    <span id="contador-nombre" style="font-size: 12px; color: #6c757d;">0/50</span>
+                </div>
+                <input type="text" th:field="*{nombre}" id="nombre" required>
+                <!-- Muestra el error de validación si existe -->
+                <span th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="apellidos">Apellidos:</label>
+                <input type="text" th:field="*{apellidos}" id="apellidos" required>
+                <span th:if="${#fields.hasErrors('apellidos')}" th:errors="*{apellidos}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="genero">Género:</label>
+                <select th:field="*{tipoGenero}" id="genero" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="gen : ${generos}" th:value="${gen}" th:text="${gen.nombreMostrado}"></option>
+                    <span th:if="${#fields.hasErrors('tipoGenero')}" th:errors="*{tipoGenero}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tipoPaciente">Tipo de Paciente:</label>
+                <select th:field="*{tipoPaciente}" id="tipoPaciente" required>
+                    <option value="" disabled selected>Seleccione el tipo de paciente</option>
+                    <option th:each="tipo : ${tiposPaciente}" th:value="${tipo}" th:text="${tipo.nombreMostrado}"></option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fechaNacimiento">Fecha de nacimiento:</label>
+                <input type="date" th:field="*{fechaNacimiento}" id="fechaNacimiento" required>
+                <!-- Agrega esta línea para ver los errores de fecha -->
+                <span th:if="${#fields.hasErrors('fechaNacimiento')}" th:errors="*{fechaNacimiento}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="edad">Edad calculada:</label>
+                <div class="inline-input">
+                    <input type="number" th:field="*{edad}" id="edad" readonly placeholder="0">
+                    <span>años</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="telefono">Teléfono:</label>
+                <input type="text" th:field="*{telefono}" id="telefono">
+                <span th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" th:field="*{email}" id="email">
+                <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="direccion">Dirección:</label>
+                <!-- Aquí irá el contador, le ponemos un id único para controlarlo -->
+                <span id="contador-direccion" style="font-size: 12px; color: #6c757d;">0/150</span>
+            </div>
+            <div class="form-group full-width">
+                <input type="text" th:field="*{direccion}" id="direccion">
+                <!-- Aquí saltará si el usuario escribe más de 150 caracteres -->
+                <span th:if="${#fields.hasErrors('direccion')}" th:errors="*{direccion}" style="color: red; font-size: 13px; margin-top: 5px;"></span>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/pacientes}" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn">Guardar Paciente</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // --- 1. LÓGICA DE EDAD ---
+        const inputNacimiento = document.getElementById('fechaNacimiento');
+        const inputEdad = document.getElementById('edad');
+
+        function calcularEdad() {
+            if (!inputNacimiento.value) return;
+            const fechaNacimiento = new Date(inputNacimiento.value);
+            const hoy = new Date();
+
+            if (isNaN(fechaNacimiento.getTime())) {
+                inputEdad.value = '';
+                return;
+            }
+
+            let edad = hoy.getFullYear() - fechaNacimiento.getFullYear();
+            const mes = hoy.getMonth() - fechaNacimiento.getMonth();
+
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimiento.getDate())) {
+                edad--;
+            }
+
+            inputEdad.value = edad >= 0 ? edad : '';
+        }
+
+        if (inputNacimiento) {
+            // Calcular al cargar (por si recargó la página con datos)
+            calcularEdad();
+            // Calcular cuando cambie la fecha
+            inputNacimiento.addEventListener('change', calcularEdad);
+        }
+
+
+        // --- 2. LÓGICA DE CONTADORES DE CARACTERES ---
+        function configurarContador(idInput, idContador, maxLength) {
+            const input = document.getElementById(idInput);
+            const contador = document.getElementById(idContador);
+
+            if (input && contador) {
+                function actualizar() {
+                    const actual = input.value.length;
+                    contador.textContent = `${actual}/${maxLength}`;
+
+                    // Si se pasa del límite del backend, se pone en rojo
+                    if (actual > maxLength) {
+                        contador.style.color = "red";
+                    } else {
+                        contador.style.color = "#6c757d";
+                    }
+                }
+
+                actualizar(); // Ejecutar al cargar
+                input.addEventListener("input", actualizar); // Ejecutar al escribir
+            }
+        }
+
+        // Aplícalo a tus campos (ejemplo: nombre max 50, dirección max 150)
+        configurarContador("nombre", "contador-nombre", 50);
+        configurarContador("direccion", "contador-direccion", 150);
+    });
+</script>
+
+</body>
+</html>
